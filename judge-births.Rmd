@@ -2,7 +2,7 @@
 title: "Judge Births"
 author: "Pete"
 date: "10/08/2014"
-output: html_document
+output: pdf_document
 ---
 
 This map will attempt to plot the birthplaces of Federal Judges using the Federal Judge dataset <http://www.uscourts.gov/JudgesAndJudgeships/BiographicalDirectoryOfJudges.aspx>
@@ -106,8 +106,8 @@ farm_map<-ggplot() +
   scale_fill_brewer(palette = "YlGnBu")
 
 farm_map +
-geom_point(data = judge_birth, aes(x = lon, y = lat), color = "red", size = 3) +
-  xlim(-125, -65)
+geom_point(data = judge_birth, aes(x = lon, y = lat, color = "red", size = 3)) +
+xlim(-125, -65)
 
 
 
