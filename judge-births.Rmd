@@ -9,8 +9,15 @@ This map will attempt to plot the birthplaces of Federal Judges using the Federa
 
 ```{r}
 #Load Libraries
-
-
+library(rgdal)
+library(sp)
+library(rgeos)
+library(maptools)
+library(ggmap)
+library(ggplot2)
+library(historydata)
+library(dplyr)
+library(mullenMisc)
 
 
 

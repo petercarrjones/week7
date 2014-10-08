@@ -67,7 +67,7 @@ map_1850 +
 
 #Now a plot of the Paulist missions on the 1850 map:
 #adding new packages
-devtools::install_github("lmullen/historydata")
+#devtools::install_github("lmullen/historydata")
 library(dplyr)
 library(historydata)
 
