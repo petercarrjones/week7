@@ -113,7 +113,26 @@ library(ggplot2)
 library(historydata)
 library(dplyr)
 
-
+#add us county data and farm data
+counties_1850_sp <- readOGR("nhgis-shp/", "US_county_1850")
+counties_1850_df <- fortify(counties_1850_sp, region ="GISJOIN")
+farms_1850 <- read.csv("nhgis0003_csv/nhgis0003_ds11_1850_county.csv", stringsAsFactors = FALSE)
+#merge the tables at GISJOIN/ID fields. I had to change the GISJOIN column to id in "farms_1850" to get them to join correctly
+colnames(farms_1850)[1]<-"id"
+farms_merged <- counties_1850_df %>% 
+  left_join(farms_1850, by = "id")
+#Plot this map
+ggplot(data = farms_merged,
+       aes(x = long, y = lat, group = group, fill = AE7001, map_id = id)) +
+  geom_map(map = farms_merged) + 
+  ggtitle("Average Value of Farms and Buildings in dollars/acre in 1850") +
+  coord_map() + 
+  theme_minimal() + 
+  theme(legend.position = "bottom")
+#Explore the farmland values table to improve map. 
+summary(farms_1850$AE7001)
+ggplot(data = farms_1850, aes (x = AE7001)) + geom_histogram(binwidth = 10) +
+  ggtitle("Distribution of farmland values in 1850")
 
 
 
