@@ -2,7 +2,7 @@
 title: "first_maps"
 author: "Pete"
 date: "10/07/2014"
-output: html_document
+output: pdf_document
 ---
 This is my attempt to work through a mix of Lincoln's historic mapping tutorial: http://dh-r.lincolnmullen.com/mapping.html 
 

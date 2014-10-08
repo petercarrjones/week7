@@ -18,21 +18,105 @@ library(ggplot2)
 library(historydata)
 library(dplyr)
 library(mullenMisc)
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(stringr)
+
 
 
 
 
 #Pull in Judge Data
-
+jb <- read.csv("~/Documents/Hist698/week6/jb.txt", stringsAsFactors=FALSE)
 
 #Clean Judge Data - pull out id#, birth.location, birth year
+judge_birth<-jb 
+judge_birth<-judge_birth %>% 
+  tbl_df() %>%
+  select(Birth.year, Place.of.Birth..City., Place.of.Birth..State., Judge.Identification.Number) %>%
+ mutate(place = paste(Place.of.Birth..City., Place.of.Birth..State., sep=", ")) %>%
+  #Run mullenMisc's round_year function
+  mutate(decade = round_year(judge_birth$Birth.year))%>%
+  #Filter judge dataset for only 1850 births  
+  filter(decade == 1850)
 
 
-#Run mullenMisc's round_year function
+  #Geocode place names
+  judge_place <- geocode(judge_birth$place)
+judge_birth <- cbind(judge_birth, judge_place)
 
-#Filter judge dataset for only 1850 births
+str(judge_birth)
 
-#Plot 1890 births on that map
+  
+#judge_map <- ggplot(judge_birth, aes(x=lon, y = lat)) +
+ # geom_point() + 
+  #geom_text(aes(label=place), vjust = -1) + 
+  #coord_map() +
+  #xlim(-135, -65)
+map_sp <- readOGR("nhgis-shp/", "state_1850") 
+plot(map_sp, col = "grey")
+map_df <- fortify(map_sp, region = "GISJOIN")
+#And make a map with ggplot
+map_1850 <- ggplot() + 
+  geom_map(data = map_df,
+           map = map_df, 
+  aes(x=long, y=lat, group = group, map_id = id),
+  fill = "white",
+  color = "black",
+  size = 0.2) +
+coord_map() +
+  theme_minimal()
+#Add the "Cities" Data to our 1850 map. Voila!
+map_1850 +
+  geom_point(data = judge_birth, aes(x = lon, y = lat), color = "red", size = 3) +
+  xlim(-125, -65)
+
+  #geom_text(data = judge_birth, aes(x = lon, y = lat, label=place), vjust = -1)
+
+
+#add us county data and farm data
+counties_1850_sp <- readOGR("nhgis-shp/", "US_county_1850")
+counties_1850_df <- fortify(counties_1850_sp, region ="GISJOIN")
+farms_1850 <- read.csv("nhgis0003_csv/nhgis0003_ds11_1850_county.csv", stringsAsFactors = FALSE)
+#merge the tables at GISJOIN/ID fields. I had to change the GISJOIN column to id in "farms_1850" to get them to join correctly
+colnames(farms_1850)[1]<-"id"
+farms_merged <- counties_1850_df %>% 
+  left_join(farms_1850, by = "id")
+
+#Plot this map on top of the "Farm Value by County" in Mullen's Mapping in R
+library(classInt)
+library(RColorBrewer)
+classIntervals(farms_1850$AE7001, 9, "pretty")
+intervals <- classIntervals(farms_1850$AE7001, 9, "jenks")
+head(cut(farms_1850$AE7001, breaks = intervals$brks))
+#merge it back into our farms dataframe
+farms_1850 <- farms_1850 %>%
+  mutate(value_classified = cut(AE7001, intervals$brks))
+farms_merged <- counties_1850_df %>% 
+  left_join(farms_1850, by = "id")
+
+farm_map<-ggplot() +
+  geom_map(data = farms_merged,
+           map = farms_merged,
+       aes(x = long, y = lat, group = group, fill = value_classified, map_id = id))+
+  coord_map() +
+  theme_minimal()+
+    theme(legend.position = "bottom") +
+  scale_fill_brewer(palette = "YlGnBu")
+
+farm_map +
+geom_point(data = judge_birth, aes(x = lon, y = lat), color = "red", size = 3) +
+  xlim(-125, -65)
+
+
+
+
+
+
+
+
+#Plot 1850 births on that map
 
 #Plot all birth.locations on US Map. Maybe use hex or density plot.
 
