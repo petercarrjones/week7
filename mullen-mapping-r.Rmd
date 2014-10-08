@@ -4,7 +4,7 @@ author: "Pete"
 date: "10/07/2014"
 output: html_document
 ---
-This is my attempt to work through a mix of Lincoln's historic mapping tutorial: http://dh-r.lincolnmullen.com/mapping.html And Bivand, et al's ASDAR http://www.asdar-book.org/
+This is my attempt to work through a mix of Lincoln's historic mapping tutorial: http://dh-r.lincolnmullen.com/mapping.html 
 
 
 
@@ -133,9 +133,53 @@ ggplot(data = farms_merged,
 summary(farms_1850$AE7001)
 ggplot(data = farms_1850, aes (x = AE7001)) + geom_histogram(binwidth = 10) +
   ggtitle("Distribution of farmland values in 1850")
+# Break values into bins with classInt package
+#install.packages("classInt")
+library(classInt)
+classIntervals(farms_1850$AE7001, 9, "pretty")
+intervals <- classIntervals(farms_1850$AE7001, 9, "jenks")
+head(cut(farms_1850$AE7001, breaks = intervals$brks))
+#merge it back into our farms dataframe
+farms_1850 <- farms_1850 %>%
+  mutate(value_classified = cut(AE7001, intervals$brks))
+farms_merged <- counties_1850_df %>% 
+  left_join(farms_1850, by = "id")
+#Now redo the map. Pretty!
+ggplot(data = farms_merged,
+       aes(x = long, y = lat, group = group, 
+           fill = value_classified, map_id = id)) +
+  geom_map(map = farms_merged) + 
+  ggtitle("Average Value of Farms and Buildings in dollars/acre in 1850") +
+  coord_map() + 
+  theme_minimal() + 
+  theme(legend.position = "bottom")
+
+#Make the map prettier with newer, better colors
+#install.packages("RColorBrewer")
+library(RColorBrewer)
+ggplot(data = farms_merged,
+       aes(x = long, y = lat, group = group, fill = value_classified, map_id = id)) +
+  geom_map(map = farms_merged, color="gray", size = 0.2) + 
+  ggtitle("Average Value of Farms and Buildings in dollars/acre in 1850") +
+  coord_map() + 
+  theme_minimal() + 
+  theme(legend.position = "bottom") +
+  scale_fill_brewer(palette = "YlGnBu")
+
+#And limited x/y axis to show only Eastern US, move the legend to the side.
+ggplot(data = farms_merged,
+       aes(x = long, y = lat, group = group, 
+           fill = value_classified, map_id = id)) +
+  geom_map(map = farms_merged, color="gray", size = 0.2) + 
+  ggtitle("Average Value of Farms and Buildings in dollars/acre in 1850") +
+  coord_map() + 
+  theme_minimal() + 
+  scale_fill_brewer(palette = "YlGnBu") +
+  xlim(-98, -65)
+
+
 
 
 
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Now that's a map!
