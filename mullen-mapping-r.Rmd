@@ -17,38 +17,38 @@ library(ggmap)
 library(ggplot2)
 
 #load libraries
-
+#First plot
 map_sp <- readOGR("nhgis-shp/", "state_1850") 
 plot(map_sp, col = "grey")
 title("United States, 1850")
 
-#First plot
 
+#Second plot - Whitney was starting to get a little more into DH at this point.
 earth <- readOGR("naturalearth/50m_physical/", "ne_50m_land")
 plot(earth, col = "gray"); title("Whitney's Queendom")
 
-#Second plot - Whitney was starting to get a little more into DH at this point.
 
+#Second plot transformed into a new projection
 winkel <- spTransform(earth, CRS("+proj=wintri"))
 plot(winkel, col="gray")
 title("Whitney's world according to Oswald Winkel")
-#Second plot transformed into a new projection
 
-cities <- data.frame(name = c("Saint Louis, MO", "San Francisco, CA", "Boston, MA", "Charleston, SC", "Houston, TX"), stringsAsFactors=FALSE)
 #Created a list of cities
+cities <- data.frame(name = c("Saint Louis, MO", "San Francisco, CA", "Boston, MA", "Charleston, SC", "Houston, TX"), stringsAsFactors=FALSE)
 
+#Gave them a lat/long via ggmap's google map function and binded those fields to my cities DF
 cities_geocoded <- geocode(cities$name)
 cities <- cbind(cities, cities_geocoded)
-#Gave them a lat/long via ggmap's google map function and binded those fields to my cities DF
 
+#Drew a plot of my cities in space using lat/long and labeled with the "name" column.
 ggplot(cities, aes(x=lon, y = lat)) +
   geom_point() + 
   geom_text(aes(label=name), vjust = -1) + 
   coord_map()
-#Drew a plot of my cities in space using lat/long and labeled with the "name" column.
 
-map_df <- fortify(map_sp, region = "GISJOIN")
 #turn the sp into a data frame object.
+map_df <- fortify(map_sp, region = "GISJOIN")
+#And make a map with ggplot
 map_1850 <- ggplot() + 
   geom_map(data = map_df,
            map = map_df, 
@@ -58,22 +58,23 @@ map_1850 <- ggplot() +
   size = 0.2) +
 coord_map() +
   theme_minimal()
-#And make a map with ggplot
+#Add the "Cities" Data to our 1850 map. Voila!
 map_1850 +
   geom_point(data = cities, aes(x = lon, y = lat), color = "red", size = 3) + 
   geom_text(data = cities, aes(x = lon, y = lat, label=name), vjust = -1)
-#Add the "Cities" Data to our 1850 map. Voila!
+
 
 
 #Now a plot of the Paulist missions on the 1850 map:
+#adding new packages
 devtools::install_github("lmullen/historydata")
 library(dplyr)
 library(historydata)
-#adding new packages
 
-data(paulist_missions)
 #adding paulist missions data frame
+data(paulist_missions)
 
+#Mapping Paulist missions as points.
 map_1850 + 
   geom_point(data = paulist_missions, 
              aes(x=long, y = lat, size = confessions),
@@ -100,8 +101,21 @@ map_1850 +
 ```
 
 
-
+Exploring Chloropleths
 ```{r}
+#Adding Libraries
+library(rgdal)
+library(sp)
+library(rgeos)
+library(maptools)
+library(ggmap)
+library(ggplot2)
+library(historydata)
+library(dplyr)
+
+
+
+
 
 ```
 
